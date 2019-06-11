@@ -15,23 +15,21 @@ Puppet::Type.type(:zabbix_host).provide(:ruby, parent: Puppet::Provider::Zabbix)
     )
 
     api_hosts.map do |h|
-      interface = h['interfaces'].select { |i| i['type'].to_i == 1 && i['main'].to_i == 1 }.first
-      if interface
-        use_ip = !interface['useip'].to_i.zero?
-        new(
-          ensure: :present,
-          id: h['hostid'].to_i,
-          name: h['host'],
-          interfaceid: interface['interfaceid'].to_i,
-          ipaddress: interface['ip'],
-          use_ip: use_ip,
-          port: interface['port'].to_i,
-          groups: h['groups'].map { |g| g['name'] },
-          group_create: nil,
-          templates: h['parentTemplates'].map { |x| x['host'] },
-          proxy: proxies.select { |_name, id| id == h['proxy_hostid'] }.keys.first
-        )
-      end
+      interface = h['interfaces'].select { |i| i['type'].match(/[1-2]/) && i['main'].to_i == 1 }.first
+      use_ip = !interface['useip'].to_i.zero?
+      new(
+        ensure: :present,
+        id: h['hostid'].to_i,
+        name: h['host'],
+        interfaceid: interface['interfaceid'].to_i,
+        ipaddress: interface['ip'],
+        use_ip: use_ip,
+        port: interface['port'].to_i,
+        groups: h['groups'].map { |g| g['name'] },
+        group_create: nil,
+        templates: h['parentTemplates'].map { |x| x['host'] },
+        proxy: proxies.select { |_name, id| id == h['proxy_hostid'] }.keys.first
+      )
     end
   end
 
